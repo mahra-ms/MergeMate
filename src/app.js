@@ -1,23 +1,39 @@
 const express = require("express");
-
 const app = express();
- 
-const {adminAuth,userAuth} =require("./middleware/auth")
 
-app.use("/admin",adminAuth);
+const { adminAuth, userAuth } = require("./middleware/auth");
 
-app.get("/admin/getData", (req, res) => {
-    res.send("Getting all the data");
-});
+const connectDb = require("./config/database");
 
-app.get("/users", userAuth,(req, res) => {
-    res.send("Hello from the user");
-});
+const User = require("./models/user")
 
-app.delete("/admin/deleteData", (req, res) => {
-    res.send("Data is deleted");
-});
+app.post("/signIN",async(req,res)=>{
 
-app.listen(3000, () => {
-    console.log("Server has started");
-});
+    const user = new User({
+        fristName:"Ms",
+        lastName : "Dhoni",
+        emailId : "Dhoni07@gmail.com",
+        password : "ms07d"
+
+    })
+    try{
+        await user.save()
+        res.send("user Added successfully")
+    }
+    catch(err){
+        res.status(400).send("error"+ err.message)
+    }
+})
+connectDb()
+  .then(() => {
+    console.log("Database connection established......");
+
+    app.listen(3000, () => {
+      console.log("Server has started");
+    });
+  })
+  .catch((err) => {
+    console.error("Database cannot be conneted!!");
+  });
+
+  
