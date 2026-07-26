@@ -1,24 +1,58 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const validator = require('validator');
 
-const userSchema = new mongoose.Schema({
-    firstName:{
-        type:String,
+const userSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: true,
     },
-    lastName:{
-        type:String,
+    lastName: {
+      type: String,
     },
-    emailId:{
-        type : String,
+    emailId: {
+      type: String,
+      lowercase: true,
+      required: true,
+      unique: true,
+      trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email");
+        }
+      },
     },
-    password:{
-        type: String,
+    password: {
+      type: String,
+      required: true,
     },
-    age:{
-        type: Number,
+    age: {
+      type: Number,
+      min: 18,
     },
-    gender:{
-        type : String,
-    }
-})
+    gender: {
+      type: String,
+      validate(value) {
+        if (!["male", "female", "other"].includes(value)) {
+          throw new Error("Invalid gender");
+        }
+      },
+    },
+    photoUrl: {
+      type: String,
+      default:
+        "https://img.freepik.com/premium-photo/profile-icon-white-background_941097-161481.jpg      ",
+    },
+    about: {
+      type: String,
+    },
+    skills: {
+      type: [String],
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
 
-module.exports = mongoose.model("User",userSchema)
+module.exports = mongoose.model("User", userSchema);
