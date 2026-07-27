@@ -1,17 +1,18 @@
 const express = require("express");
 const app = express();
 
-const { adminAuth, userAuth } = require("./middleware/auth");
-
+const {  userAuth } = require("./middleware/auth");
 const connectDb = require("./config/database");
-
 const User = require("./models/user");
 const user = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
-const validator = require("validator")
+const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signUp", async (req, res) => {
   try {
@@ -41,8 +42,6 @@ app.post("/logIn", async (req, res) => {
   try {
     const { emailId, password } = req.body;
 
-    
-
     if (!validator.isEmail(emailId)) {
       return res.status(400).send("Invalid email");
     }
@@ -58,14 +57,26 @@ app.post("/logIn", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).send("Invalid credentails");
     }
-
+    const token = await jwt.sign({_id: user._id},"helloWorld")
+    res.cookie("token", token);
     return res.send("User login successful");
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
 
-app.get("/user", async (req, res) => {
+app.get("/profile", userAuth, async(req,res)=>{
+    try{
+        const user = req.user;
+
+        res.send(user )
+    }
+    catch(err){
+        res.status(400).send("error:"+ err.message)
+    }
+})
+
+app.get("/user", userAuth, async (req, res) => {
   const userEmail = req.body.emailId;
 
   try {
