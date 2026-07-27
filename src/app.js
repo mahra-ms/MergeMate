@@ -7,16 +7,61 @@ const connectDb = require("./config/database");
 
 const User = require("./models/user");
 const user = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const validator = require("validator")
 
 app.use(express.json());
 
-app.post("/signIN", async (req, res) => {
-  const user = new User(req.body);
+app.post("/signUp", async (req, res) => {
   try {
+    // validation
+    validateSignUpData(req);
+
+    const { firstName, lastName, emailId, password } = req.body;
+
+    // password encrypt
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // new user
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await user.save();
     res.send("user Added successfully");
   } catch (err) {
-    res.status(400).send("error" + err.message);
+    res.status(400).send("error : " + err.message);
+  }
+});
+
+app.post("/logIn", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    
+
+    if (!validator.isEmail(emailId)) {
+      return res.status(400).send("Invalid email");
+    }
+
+    const user = await User.findOne({ emailId });
+
+    if (!user) {
+      return res.status(404).send("nvalid credentails");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).send("Invalid credentails");
+    }
+
+    return res.send("User login successful");
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 
