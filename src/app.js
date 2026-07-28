@@ -52,12 +52,13 @@ app.post("/logIn", async (req, res) => {
       return res.status(404).send("nvalid credentails");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.validatePassword(password)
 
     if (!isPasswordValid) {
       return res.status(401).send("Invalid credentails");
     }
-    const token = await jwt.sign({_id: user._id},"helloWorld")
+    const token = await user.getJWT()
+
     res.cookie("token", token);
     return res.send("User login successful");
   } catch (err) {
@@ -74,6 +75,11 @@ app.get("/profile", userAuth, async(req,res)=>{
     catch(err){
         res.status(400).send("error:"+ err.message)
     }
+})
+
+app.get("/getConnectionRequest" , userAuth, (req,res)=>{
+    const user= req.user
+    res.send(user.firstName +" sending connection request")
 })
 
 app.get("/user", userAuth, async (req, res) => {
