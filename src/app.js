@@ -1,86 +1,35 @@
 const express = require("express");
 const app = express();
 
-const {  userAuth } = require("./middleware/auth");
+
 const connectDb = require("./config/database");
 const User = require("./models/user");
 const user = require("./models/user");
-const { validateSignUpData } = require("./utils/validation");
+ 
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const cookieParser = require("cookie-parser");
 const jwt = require('jsonwebtoken');
+const {  userAuth } = require("./middleware/auth");
+
+const authRouter = require("./router/auth");
+const requestRouter = require("./router/request");
+const profileRouter = require("./router/profile")
+
+
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signUp", async (req, res) => {
-  try {
-    // validation
-    validateSignUpData(req);
 
-    const { firstName, lastName, emailId, password } = req.body;
+app.use("/", authRouter);
+app.use("/", requestRouter);
+app.use("/", profileRouter);
 
-    // password encrypt
-    const passwordHash = await bcrypt.hash(password, 10);
 
-    // new user
-    const user = new User({
-      firstName,
-      lastName,
-      emailId,
-      password: passwordHash,
-    });
-    await user.save();
-    res.send("user Added successfully");
-  } catch (err) {
-    res.status(400).send("error : " + err.message);
-  }
-});
 
-app.post("/logIn", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
 
-    if (!validator.isEmail(emailId)) {
-      return res.status(400).send("Invalid email");
-    }
 
-    const user = await User.findOne({ emailId });
-
-    if (!user) {
-      return res.status(404).send("nvalid credentails");
-    }
-
-    const isPasswordValid = await user.validatePassword(password)
-
-    if (!isPasswordValid) {
-      return res.status(401).send("Invalid credentails");
-    }
-    const token = await user.getJWT()
-
-    res.cookie("token", token);
-    return res.send("User login successful");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-app.get("/profile", userAuth, async(req,res)=>{
-    try{
-        const user = req.user;
-
-        res.send(user )
-    }
-    catch(err){
-        res.status(400).send("error:"+ err.message)
-    }
-})
-
-app.get("/getConnectionRequest" , userAuth, (req,res)=>{
-    const user= req.user
-    res.send(user.firstName +" sending connection request")
-})
 
 app.get("/user", userAuth, async (req, res) => {
   const userEmail = req.body.emailId;
@@ -105,7 +54,7 @@ app.get("/feed", async (req, res) => {
   }
 });
 
-app.delete("/user", async (req, res) => {
+app.delete("/deleteUser", async (req, res) => {
   const userId = req.body.userId;
 
   try {
