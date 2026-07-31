@@ -15,7 +15,7 @@ const {  userAuth } = require("./middleware/auth");
 const authRouter = require("./router/auth");
 const requestRouter = require("./router/request");
 const profileRouter = require("./router/profile")
-
+const userRouter = require("./router/user")
 
 
 app.use(express.json());
@@ -25,6 +25,7 @@ app.use(cookieParser());
 app.use("/", authRouter);
 app.use("/", requestRouter);
 app.use("/", profileRouter);
+app.use("/", userRouter)
 
 
 
@@ -45,14 +46,14 @@ app.get("/user", userAuth, async (req, res) => {
   }
 });
 
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (err) {
-    res.status(400).send("something went wrong");
-  }
-});
+// app.get("/feed", async (req, res) => {
+//   try {
+//     const users = await User.find({});
+//     res.send(users);
+//   } catch (err) {
+//     res.status(400).send("something went wrong");
+//   }
+// });
 
 app.delete("/deleteUser", async (req, res) => {
   const userId = req.body.userId;
@@ -69,38 +70,38 @@ app.delete("/deleteUser", async (req, res) => {
   }
 });
 
-app.patch("/user/:userId", async (req, res) => {
-  const userId = req.params?.userId;
-  const data = req.body;
+// app.patch("/user/:userId", async (req, res) => {
+//   const userId = req.params?.userId;
+//   const data = req.body;
 
-  try {
-    const Allowed_Updates = [
-      "firstName",
-      "userId",
-      "photoUrl",
-      "about",
-      "gender",
-      "age",
-      "skills",
-    ];
-    const isUpdateAllowed = Object.keys(data).every((k) =>
-      Allowed_Updates.includes(k),
-    );
-    if (!isUpdateAllowed) {
-      throw new Error("update is not allowed");
-    }
-    if (data?.skills.length > 10) {
-      throw new Error("SKILLS CANNOT BE MORE THAN 10");
-    }
-    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    res.send("data is updated");
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
+//   try {
+//     const Allowed_Updates = [
+//       "firstName",
+//       "userId",
+//       "photoUrl",
+//       "about",
+//       "gender",
+//       "age",
+//       "skills",
+//     ];
+//     const isUpdateAllowed = Object.keys(data).every((k) =>
+//       Allowed_Updates.includes(k),
+//     );
+//     if (!isUpdateAllowed) {
+//       throw new Error("update is not allowed");
+//     }
+//     if (data?.skills.length > 10) {
+//       throw new Error("SKILLS CANNOT BE MORE THAN 10");
+//     }
+//     const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+//       returnDocument: "after",
+//       runValidators: true,
+//     });
+//     res.send("data is updated");
+//   } catch (err) {
+//     res.status(400).send(err.message);
+//   }
+// });
 
 connectDb()
   .then(() => {
