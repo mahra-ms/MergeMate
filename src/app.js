@@ -1,4 +1,7 @@
 const express = require("express");
+const cors = require("cors")
+const cookieParser = require("cookie-parser");
+
 const app = express();
 
 
@@ -8,9 +11,10 @@ const user = require("./models/user");
  
 const bcrypt = require("bcrypt");
 const validator = require("validator");
-const cookieParser = require("cookie-parser");
+
 const jwt = require('jsonwebtoken');
 const {  userAuth } = require("./middleware/auth");
+
 
 const authRouter = require("./router/auth");
 const requestRouter = require("./router/request");
@@ -18,6 +22,10 @@ const profileRouter = require("./router/profile")
 const userRouter = require("./router/user")
 
 
+app.use(cors({
+  origin: "http://localhost:5173", // Vite React app
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 

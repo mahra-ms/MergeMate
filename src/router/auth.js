@@ -57,7 +57,7 @@ authRouter.post("/logIn", async (req, res) => {
       secure: false,
       sameSite: "lax",
     });
-    return res.send("User login successful");
+    return res.send(user);
   } catch (err) {
     res.status(500).send(err.message);
   }
