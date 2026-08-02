@@ -22,11 +22,22 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     }
 
     const loggedUser = req.user;
-    Object.keys(req.body).forEach((key) => (loggedUser[key] = req.body[key]));
+
+    Object.keys(req.body).forEach((key) => {
+      loggedUser[key] = req.body[key];
+    });
+
     await loggedUser.save();
-    res.send(`${loggedUser.firstName} Profile Updated successfully`);
+
+    res.status(200).json({
+      message: `${loggedUser.firstName} profile updated successfully`,
+      data: loggedUser,
+    });
   } catch (err) {
-    res.status(400).send("something went wrong" + err.message);
+    res.status(400).json({
+      message: "Something went wrong",
+      error: err.message,
+    });
   }
 });
 
