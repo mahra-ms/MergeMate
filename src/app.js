@@ -21,6 +21,8 @@ const requestRouter = require("./router/request");
 const profileRouter = require("./router/profile")
 const userRouter = require("./router/user")
 
+require("dotenv").config();
+
 
 app.use(cors({
   origin: "http://localhost:5173", // Vite React app
