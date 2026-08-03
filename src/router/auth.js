@@ -6,7 +6,6 @@ const { validateSignUpData } = require("../utils/validation");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 
-
 authRouter.post("/signUp", async (req, res) => {
   try {
     // validation
@@ -14,21 +13,38 @@ authRouter.post("/signUp", async (req, res) => {
 
     const { firstName, lastName, emailId, password } = req.body;
 
-    // password encrypt
+    // hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // new user     
+    // create user
     const user = new User({
       firstName,
       lastName,
       emailId,
       password: passwordHash,
-      
     });
-    await user.save();
-    res.status(201).send("User added successfully");
+
+    const savedUser = await user.save();
+
+    // generate JWT
+    const token = await savedUser.getJWT();
+
+    // set cookie
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.status(201).json({
+      message: "User added successfully",
+      data: savedUser,
+    });
   } catch (err) {
-    res.status(400).send("error : " + err.message);
+    res.status(400).json({
+      error: err.message,
+    });
   }
 });
 
@@ -64,11 +80,11 @@ authRouter.post("/logIn", async (req, res) => {
   }
 });
 
-authRouter.post("/logOut", async(req,res)=>{
-  res.cookie("token",null,{
-    expires: new Date(Date.now())
-  })
-  res.send("user logout")
-})
+authRouter.post("/logOut", async (req, res) => {
+  res.cookie("token", null, {
+    expires: new Date(Date.now()),
+  });
+  res.send("user logout");
+});
 
 module.exports = authRouter;
