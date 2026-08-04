@@ -59,6 +59,16 @@ const paymentSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+    isPremium: {
+        type: Boolean,
+        default : false,
+    },
+    membershipType:{
+        type: String,
+    },
+    membershipValidity : {
+        type :String,
+    }
   },
   {
     timestamps: true,
