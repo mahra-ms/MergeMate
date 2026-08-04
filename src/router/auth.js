@@ -33,8 +33,8 @@ authRouter.post("/signUp", async (req, res) => {
     res.cookie("token", token, {
       expires: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
     });
 
     res.status(201).json({
@@ -71,8 +71,8 @@ authRouter.post("/logIn", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
     return res.send(user);
   } catch (err) {
