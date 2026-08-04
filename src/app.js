@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors")
 const cookieParser = require("cookie-parser");
@@ -19,9 +20,10 @@ const {  userAuth } = require("./middleware/auth");
 const authRouter = require("./router/auth");
 const requestRouter = require("./router/request");
 const profileRouter = require("./router/profile")
-const userRouter = require("./router/user")
+const userRouter = require("./router/user");
+const paymentRouter = require("./router/payment");
 
-require("dotenv").config();
+
 
 
 app.use(cors({
@@ -36,6 +38,7 @@ app.use("/", authRouter);
 app.use("/", requestRouter);
 app.use("/", profileRouter);
 app.use("/", userRouter)
+app.use("/", paymentRouter)
 
 
 
