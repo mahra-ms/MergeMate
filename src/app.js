@@ -27,7 +27,10 @@ const paymentRouter = require("./router/payment");
 
 
 app.use(cors({
-  origin: "http://localhost:5173", // Vite React app
+  origin: [
+    'http://localhost:5173',
+    'https://dev-tinder-web-5pjh.vercel.app'
+  ], // Vite React app
   credentials: true,
 }));
 app.use(express.json());
