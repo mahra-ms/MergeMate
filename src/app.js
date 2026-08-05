@@ -22,7 +22,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://dev-tinder-web-1xq9.vercel.app",
+      "https://byte-social.vercel.app",
     ],
     credentials: true,
   })
