@@ -7,7 +7,7 @@ const initializeSocket = (server) => {
     cors: {
       origin: [
         "http://localhost:5173",
-        "https://byte-social.onrender.com",
+        "https://byte-social.vercel.app",
       ],
       credentials: true,
     },
