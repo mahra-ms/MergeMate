@@ -10,25 +10,13 @@ const {
 
 const paymentRouter = express.Router();
 
-// Adjust this list to match the keys your membershipAmount() function supports
-const VALID_PLANS = ["silver", "gold"];
-
 paymentRouter.post("/payment/create", userAuth, async (req, res) => {
   try {
     const user = req.user;
     const { plan } = req.body;
 
-    if (!plan || !VALID_PLANS.includes(plan)) {
-      return res.status(400).json({ message: "Invalid or missing plan" });
-    }
-
-    const amount = membershipAmount(plan);
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ message: "Could not determine amount for plan" });
-    }
-
     const options = {
-      amount: amount * 100,
+      amount: membershipAmount(plan) * 100,
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
       notes: {
@@ -67,14 +55,8 @@ paymentRouter.post("/payment/create", userAuth, async (req, res) => {
 
 // IMPORTANT: this route needs the RAW request body to verify the
 // Razorpay signature, so express.raw() is used here instead of
-// express.json(). This route (or this whole router) MUST be mounted
-// BEFORE any global express.json() middleware in your main app file,
-// or the raw body will already be consumed/parsed and signature
-// verification will silently fail. e.g.:
-//
-//   app.use("/api", paymentRouter);   // <-- mounted first
-//   app.use(express.json());          // <-- global parser after
-//
+// express.json(). This must not run after a global express.json()
+// middleware, or the raw body will already be consumed/parsed.
 paymentRouter.post(
   "/payment/webhook",
   express.raw({ type: "application/json" }),
@@ -82,20 +64,11 @@ paymentRouter.post(
     try {
       const webhookSignature = req.headers["x-razorpay-signature"];
 
-      if (!webhookSignature) {
-        return res.status(400).json({ msg: "missing signature" });
-      }
-
-      let isWebHookValid = false;
-      try {
-        isWebHookValid = validateWebhookSignature(
-          req.body.toString(),
-          webhookSignature,
-          process.env.RAZORPAY_WEBHOOK_SECRET
-        );
-      } catch (sigErr) {
-        return res.status(400).json({ msg: "signature verification error" });
-      }
+      const isWebHookValid = validateWebhookSignature(
+        req.body.toString(),
+        webhookSignature,
+        process.env.RAZORPAY_WEBHOOK_SECRET
+      );
 
       if (!isWebHookValid) {
         return res.status(400).json({ msg: "webhook invalid" });
@@ -109,23 +82,10 @@ paymentRouter.post(
       });
 
       if (!payment) {
-        // Don't 404 here — Razorpay will keep retrying an unrecognized
-        // order forever. Log it for investigation and ack with 200
-        // so Razorpay stops retrying.
-        console.error(
-          `Webhook received for unknown orderId: ${paymentDetails.order_id}`
-        );
-        return res.status(200).json({ status: "ok" });
-      }
-
-      // Idempotency guard: if we've already processed this exact
-      // payment id, skip re-processing (Razorpay may retry webhooks).
-      if (payment.paymentId === paymentDetails.id) {
-        return res.status(200).json({ status: "ok" });
+        return res.status(404).json({ message: "Payment not found" });
       }
 
       payment.status = paymentDetails.status;
-      payment.paymentId = paymentDetails.id;
       await payment.save();
 
       if (payload.event === "payment.captured") {
@@ -149,14 +109,14 @@ paymentRouter.post(
   }
 );
 
-paymentRouter.get("/premium/verify", userAuth, async (req, res) => {
-  const user = req.user;
-  if (user.isPremium) {
-    return res.json({ isPremium: true });
-  }
-  return res.json({
-    isPremium: false,
-  });
-});
+paymentRouter.get("/premium/verify", userAuth, async(req, res) =>{
+    const user = req.user
+    if(user.isPremium){
+        return res.json({isPremium: true})
+    }
+    return res.json({
+        isPremium : false
+    })
+})
 
 module.exports = paymentRouter;

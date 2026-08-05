@@ -61,7 +61,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
       ]);
 
     const data = connectionRequests.map((row) => {
-      if (row.fromUserId._id.toString() === loggedInUser.toString()) {
+      if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
         return row.toUserId;
       }
       return row.fromUserId;
@@ -79,12 +79,11 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 userRouter.get("/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-    const page = parseInt(req.query.page) || 1
-    let limit = parseInt(req.query.limit) || 10 
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
 
-    limit = limit>50?50 : limit
-    const skip = (page -1)*limit
-
+    limit = limit > 50 ? 50 : limit;
+    const skip = (page - 1) * limit;
 
     const connectionRequests = await ConnectionRequest.find({
       $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
@@ -105,7 +104,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
       })
       .select("firstName lastName age gender photoUrl about skills")
       .skip(skip)
-      .limit(limit)
+      .limit(limit);
 
     res.status(200).json({
       success: true,
@@ -117,4 +116,5 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     });
   }
 });
+
 module.exports = userRouter;
